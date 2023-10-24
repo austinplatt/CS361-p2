@@ -162,28 +162,21 @@ public boolean accepts(String s) {
     
         Queue<NFAState> newStates = new LinkedList<NFAState>();
     
-        if (s.equals("e")) {
-            retval = 1; // Handle epsilon transition
-        } else {
-            for (char symbol : s.toCharArray()) {
-                if (!alphabet.contains(symbol)) {
-                    return 1;
-                }
-    
-                while (!currentStates.isEmpty()) {
-                    Set<NFAState> eClose = eClosure(currentStates.peek());
-                    eClose.remove(currentStates.peek());
-                    currentStates.addAll(eClose);
-                    retval = Math.max(retval, currentStates.size());
-                    newStates.addAll(getToState(currentStates.remove(), symbol));
-                }
-                currentStates.addAll(newStates);
+        for (char symbol : s.toCharArray()) {
+            if (!alphabet.contains(symbol)) {
+                return 0; // Invalid symbol in the input string
             }
+    
+            while (!currentStates.isEmpty()) {
+                Set<NFAState> eClose = eClosure(currentStates.poll());
+                retval = Math.max(retval, currentStates.size() + eClose.size());
+                newStates.addAll(getToState(eClose, symbol));
+            }
+            currentStates.addAll(newStates);
         }
     
         return retval;
     }
-    
     
 
 	@Override
