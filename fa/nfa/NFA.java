@@ -78,45 +78,50 @@ public class NFA implements NFAInterface {
 		alphabet.add(symbol);
 	}
 
-	@Override
-	public boolean accepts(String s) {
-		Queue<NFAState> currentStates = new LinkedList<NFAState>();
-		currentStates.add(startState);
-		
-		Queue<NFAState> newStates = new LinkedList<NFAState>();
-        if (s != "e") {
-			for (char symbol : s.toCharArray()) {
-				if (!alphabet.contains(symbol)) {
-					return false;
-				}
-
-				while (!currentStates.isEmpty()) {
-					Set<NFAState> eClose = eClosure(currentStates.peek());
-					eClose.removeAll(currentStates);
-					currentStates.addAll(eClose);
-					newStates.addAll(getToState(currentStates.remove(), symbol));
-				}
-				currentStates.addAll(newStates);
-			} 
-		}
-		for (NFAState state: currentStates) {
-			Set<NFAState> eClose = eClosure(state);
-			eClose.removeAll(newStates);
-			newStates.addAll(eClose);
-			
-		}
-		
+    @Override
+    public boolean accepts(String s) {
+        Queue<NFAState> currentStates = new LinkedList<NFAState>();
+        currentStates.add(startState);
+    
+        Queue<NFAState> newStates = new LinkedList<NFAState>();
+    
+        if (s.equals("e")) {
+            // Special case for epsilon string
+            newStates.add(startState);
+        } else {
+            for (char symbol : s.toCharArray()) {
+                if (!alphabet.contains(symbol)) {
+                    return false;
+                }
+    
+                while (!currentStates.isEmpty()) {
+                    Set<NFAState> eClose = eClosure(currentStates.peek());
+                    eClose.remove(currentStates.peek());
+                    currentStates.addAll(eClose);
+                    newStates.addAll(getToState(currentStates.remove(), symbol));
+                }
+                currentStates.addAll(newStates);
+            }
+        }
+    
+        for (NFAState state : currentStates) {
+            Set<NFAState> eClose = eClosure(state);
+            eClose.removeAll(newStates);
+            newStates.addAll(eClose);
+        }
+    
         newStates.removeAll(currentStates);
         currentStates.addAll(newStates);
-        
-        boolean retval = false;
-        
+    
         for (NFAState finalState : finalStates) {
-        	if (currentStates.contains(finalState)) retval = true;
+            if (currentStates.contains(finalState)) {
+                return true;
+            }
         }
-
-        return retval;
-	}
+    
+        return false;
+    }
+    
 
 	@Override
 	public Set<Character> getSigma() {
@@ -150,41 +155,45 @@ public class NFA implements NFAInterface {
 	}
 
 	@Override
-public int maxCopies(String s) {
-    Queue<NFAState> currentStates = new LinkedList<NFAState>();
-    currentStates.add(startState);
-    int retval = 0;
+	public int maxCopies(String s) {
+		Queue<NFAState> currentStates = new LinkedList<NFAState>();
+		currentStates.add(startState);
+		int retval = 0;
+		
+		Queue<NFAState> newStates = new LinkedList<NFAState>();
+        if (s != "e") {
+			for (char symbol : s.toCharArray()) {
+				if (!alphabet.contains(symbol)) {
+					return 0;
+				}
 
-    Queue<NFAState> newStates = new LinkedList<NFAState>();
-    
-    for (char symbol : s.toCharArray()) {
-        if (!alphabet.contains(symbol)) {
-            return 0;
+				while (!currentStates.isEmpty()) {
+					Set<NFAState> eClose = eClosure(currentStates.peek());
+					eClose.remove(currentStates.peek());
+					currentStates.addAll(eClose);
+					retval = Math.max(retval, currentStates.size());
+					newStates.addAll(getToState(currentStates.remove(), symbol));
+				}
+				currentStates.addAll(newStates);
+			}
         }
+			for (NFAState state : currentStates) {
+				Set<NFAState> eClose = eClosure(state);
+				eClose.removeAll(newStates);
+				newStates.addAll(eClose);
 
-        while (!currentStates.isEmpty()) {
-            Set<NFAState> eClose = eClosure(currentStates.peek());
-            eClose.remove(currentStates.peek());
-            currentStates.addAll(eClose);
-            newStates.addAll(getToState(currentStates.remove(), symbol));
-        }
+			} 
+		newStates.removeAll(currentStates);
         currentStates.addAll(newStates);
         retval = Math.max(retval, currentStates.size());
-        newStates.clear();
-    }
-    
-    for (NFAState state : currentStates) {
-        Set<NFAState> eClose = eClosure(state);
-        newStates.addAll(eClose);
-    }
-    
-    currentStates.clear();
-    currentStates.addAll(newStates);
-    retval = Math.max(retval, currentStates.size());
+        
+        
+//        for (NFAState finalState : finalStates) {
+//        	if (currentStates.contains(finalState)) retval = 0;
+//        }
 
-    return retval;
-}
-
+        return retval;
+	}
 
 	@Override
 	public boolean addTransition(String fromState, Set<String> toStates, char onSymb) {
