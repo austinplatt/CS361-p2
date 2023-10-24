@@ -1,231 +1,274 @@
 package fa.nfa;
+
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
+import java.util.LinkedList;
 
 import fa.State;
 
-public abstract class NFA implements NFAInterface{
 
-    private Set<NFAState> states;
+
+/**
+ * A Class to represent a non-deterministic finite automata
+ * @author Jered Fennell, Austin Platt
+ * @version 1.0
+ */
+public class NFA implements NFAInterface {
+	
+	private Set<NFAState> states;
     private Set<Character> alphabet;
     private NFAState startState;
     private Set<NFAState> finalStates;
-    private Map<NFAState, Map<Character, Set<NFAState>>> transitions;
+    private LinkedHashMap<NFAState, Map<Character, Set<NFAState>>> transitions;
 
-    public NFA() {
-        states = new HashSet<>();
-        alphabet = new HashSet<>();
-        finalStates = new HashSet<>();
-        transitions = new HashMap<>();
-    }
-
-    private NFAState getStateByName(String stateName) {
-        for (NFAState state : states) {
-            if (state.getName().equals(stateName)) {
-                return state;
-            }
-        }
-        return null; // Return null if state not found
-    }
-
-    /**
-	 * Adds the transition to the NFA's delta data structure
-	 * @param fromState is the label of the state where the transition starts
-	 * @param toState is the set of labels of the states where the transition ends
-	 * @param onSymb is the symbol from the NFA's alphabet.
-	 * @return true if successful and false if one of the states don't exist or the symbol in not in the alphabet
+	/**
+	 * 
 	 */
-    @Override
-    public boolean addTransition(String fromState, Set<String> toStates, char onSymb) {
-        if (!states.contains(fromState)) return false;
-        for (String stateName : toStates) {
-            if (!states.contains(stateName)) return false;
-        }
+	public NFA() {
+		states = new LinkedHashSet<NFAState>();
+        alphabet = new LinkedHashSet<Character>();
+        finalStates = new LinkedHashSet<NFAState>();
+        transitions = new LinkedHashMap<NFAState, Map<Character, Set<NFAState>>>();
+        startState = null;
+	}
 
-        alphabet.add(onSymb);
-
-        NFAState from = getStateByName(fromState);
-        Map<Character, Set<NFAState>> transitionMap = transitions.getOrDefault(from, new HashMap<>());
-        Set<NFAState> toStateSet = transitionMap.getOrDefault(onSymb, new HashSet<>());
-
-        for (String stateName : toStates) {
-            toStateSet.add(getStateByName(stateName));
-        }
-
-        transitionMap.put(onSymb, toStateSet);
-        transitions.put(from, transitionMap);
-        return true;
-    }
-
-    @Override
-    public boolean isDFA() {
-        for (NFAState state : states) {
-            for (char symbol : alphabet) {
-                if (!transitions.containsKey(state) || !transitions.get(state).containsKey(symbol)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-	 * Return delta entries
-	 * @param from - the source state
-	 * @param onSymb - the label of the transition
-	 * @return a set of sink states
-	 */
-    @Override
-    public Set<NFAState> getToState(NFAState from, char onSymb) {
-        return null;
-        // Implement the logic to get the set of destination states for a transition
-    }
-
-    /**
-	 * Traverses all epsilon transitions and determine
-	 * what states can be reached from s through e
-	 * @param s
-	 * @return set of states that can be reached from s on epsilon trans.
-	 */
-    @Override
-    public Set<NFAState> eClosure(NFAState s) {
-        Set<NFAState> eClosure = new HashSet<>();
-        Stack<NFAState> stack = new Stack<>();
-        stack.push(s);
-    
-        while (!stack.isEmpty()) {
-            NFAState state = stack.pop();
-            eClosure.add(state);
-    
-            if (transitions.containsKey(state) && transitions.get(state).containsKey('e')) {
-                Set<NFAState> epsilonTransitions = transitions.get(state).get('e');
-                for (NFAState epsilonState : epsilonTransitions) {
-                    if (!eClosure.contains(epsilonState)) {
-                        stack.push(epsilonState);
-                    }
-                }
-            }
-        }
-    
-        return eClosure;
+	@Override
+	public boolean addState(String name) {
+		NFAState newState = new NFAState(name);
         
-    }
-
-    /**
-	 * Determines the maximum number of NFA copies
-	 * created when processing string s
-	 * @param s - the input string
-	 * @return - the maximum number of NFA copies created.
-	 */
-    @Override
-    public int maxCopies(String s) {
-        int maxCopies = 0;
-
-        NFAState currentState = startState;
-        Set<NFAState> currentStates = new HashSet<>();
-        currentStates.add(currentState);
-
-        for (char symbol : s.toCharArray()) {
-            Set<NFAState> nextStates = new HashSet<>();
-            for (NFAState state : currentStates) {
-                Set<NFAState> transitions = getToState(state, symbol);
-                if (transitions != null) {
-                    nextStates.addAll(transitions);
-                }
-            }
-            currentStates = nextStates;
-            maxCopies = Math.max(maxCopies, currentStates.size());
+        if (getState(name) != null) {
+            return false; 
         }
-
-        return maxCopies;
-        
-    }
-
-
-    @Override
-    public Set<Character> getSigma() {
-        return alphabet;
-        
-    }
-
-    @Override
-    public boolean addState(String name) {
-        NFAState newState = new NFAState(name);
-        if (states.contains(newState)) return false;
-        states.add(newState);
-        return true;
-    }
-
-    @Override
-    public boolean setFinal(String name) {
-        NFAState state = getStateByName(name);
-        if (state == null) return false;
-        finalStates.add(state);
-        return true;
-    }
-
-    @Override
-    public boolean setStart(String name) {
-        NFAState state = getStateByName(name);
-        if (state == null) return false;
-        startState = state;
-        return true;
-    }
-
-    @Override
-    public void addSigma(char symbol) {
-        alphabet.add(symbol);
-    }
-
-    @Override
-    public boolean accepts(String s) {
-        Set<NFAState> currentStates = eClosure(startState);
-
-        for (char symbol : s.toCharArray()) {
-            Set<NFAState> nextStateSet = new HashSet<>();
-    
-            for (NFAState state : currentStates) {
-                if (transitions.containsKey(state) && transitions.get(state).containsKey(symbol)) {
-                    nextStateSet.addAll(transitions.get(state).get(symbol));
-                }
-            }
-    
-            currentStates = new HashSet<>();
-            for (NFAState nextState : nextStateSet) {
-                currentStates.addAll(eClosure(nextState));
-            }
+        boolean retval = states.add(newState);
+        if (startState == null) {
+            startState = newState; 
         }
-    
-        // Check if any of the current states are final states
-        for (NFAState state : currentStates) {
-            if (finalStates.contains(state)) {
-                return true;
-            }
+        return retval;
+	}
+
+	@Override
+	public boolean setFinal(String name) {
+        NFAState state = (NFAState) getState(name); 
+        if (state != null) {
+            finalStates.add(state);
+            return true;
         }
-    
         return false;
-    
-    }
+	}
 
-    @Override
-    public State getState(String name) {
-        return getStateByName(name);
-    }
+	@Override
+	public boolean setStart(String name) {
+		NFAState state = (NFAState) getState(name); 
+        if (state != null) {
+            startState = state;
+            return true;
+        }
+        return false;
+	}
 
-    @Override
-    public boolean isFinal(String name) {
-        NFAState state = getStateByName(name);
-        return finalStates.contains(state);
-    }
+	@Override
+	public void addSigma(char symbol) {
+		alphabet.add(symbol);
+	}
 
-    @Override
-    public boolean isStart(String name) {
-        NFAState state = getStateByName(name);
-        return state.equals(startState);
-    }
+	@Override
+	public boolean accepts(String s) {
+		Queue<NFAState> currentStates = new LinkedList<NFAState>();
+		currentStates.add(startState);
+		
+		Queue<NFAState> newStates = new LinkedList<NFAState>();
+        if (s != "e") {
+			for (char symbol : s.toCharArray()) {
+				if (!alphabet.contains(symbol)) {
+					return false;
+				}
 
+				while (!currentStates.isEmpty()) {
+					Set<NFAState> eClose = eClosure(currentStates.peek());
+					eClose.removeAll(currentStates);
+					currentStates.addAll(eClose);
+					newStates.addAll(getToState(currentStates.remove(), symbol));
+				}
+				currentStates.addAll(newStates);
+			} 
+		}
+		for (NFAState state: currentStates) {
+			Set<NFAState> eClose = eClosure(state);
+			eClose.removeAll(newStates);
+			newStates.addAll(eClose);
+			
+		}
+		
+        newStates.removeAll(currentStates);
+        currentStates.addAll(newStates);
+        
+        boolean retval = false;
+        
+        for (NFAState finalState : finalStates) {
+        	if (currentStates.contains(finalState)) retval = true;
+        }
+
+        return retval;
+	}
+
+	@Override
+	public Set<Character> getSigma() {
+		return alphabet;
+	}
+
+	@Override
+	public NFAState getState(String name) {
+		NFAState retval = null;
+    	for(NFAState state : states) {
+    		if (state.getName() == name){
+    			retval = state;
+    		}
+    	}
+    	return retval;
+	}
+
+	@Override
+	public boolean isFinal(String name) {
+		for(NFAState state : finalStates) {
+    		if (state.getName() == name){
+    			return true;
+    		}
+    	}
+    	return false;
+	}
+
+	@Override
+	public boolean isStart(String name) {
+		return startState.getName().equals(name);
+	}
+
+	@Override
+	public int maxCopies(String s) {
+		Queue<NFAState> currentStates = new LinkedList<NFAState>();
+		currentStates.add(startState);
+		int retval = 0;
+		
+		Queue<NFAState> newStates = new LinkedList<NFAState>();
+        if (s != "e") {
+			for (char symbol : s.toCharArray()) {
+				if (!alphabet.contains(symbol)) {
+					return 0;
+				}
+
+				while (!currentStates.isEmpty()) {
+					Set<NFAState> eClose = eClosure(currentStates.peek());
+					eClose.remove(currentStates.peek());
+					currentStates.addAll(eClose);
+					retval = Math.max(retval, currentStates.size());
+					newStates.addAll(getToState(currentStates.remove(), symbol));
+				}
+				currentStates.addAll(newStates);
+			}
+        }
+			for (NFAState state : currentStates) {
+				Set<NFAState> eClose = eClosure(state);
+				eClose.removeAll(newStates);
+				newStates.addAll(eClose);
+
+			} 
+		newStates.removeAll(currentStates);
+        currentStates.addAll(newStates);
+        retval = Math.max(retval, currentStates.size());
+        
+        
+//        for (NFAState finalState : finalStates) {
+//        	if (currentStates.contains(finalState)) retval = 0;
+//        }
+
+        return retval;
+	}
+
+	@Override
+	public boolean addTransition(String fromState, Set<String> toStates, char onSymb) {
+		NFAState from = (NFAState) getState(fromState);
+        Set<NFAState> to = new LinkedHashSet<NFAState>();
+        for (String toString : toStates) {
+        	if(getState(toString) == null) return false; //fast exit if state is not found in machine
+        	to.add((NFAState) getState(toString));
+		}
+
+        if (from != null && !to.isEmpty() && (alphabet.contains(onSymb) || onSymb == 'e')) {
+            if (!transitions.containsKey(from)) {
+                transitions.put(from, new LinkedHashMap<>());
+            }
+            if(transitions.get(from).containsKey(onSymb)) {
+            	transitions.get(from).get(onSymb).addAll(to);
+            }else {
+            	transitions.get(from).put(onSymb, to);
+            }
+            from.setTransitions(transitions.get(from));
+            return true;
+        }
+        return false;
+	}
+
+	@Override
+	public boolean isDFA() {
+		for (NFAState state : states) {
+			for(Entry<Character, Set<NFAState>> E : transitions.get(state).entrySet()) {
+				if(E.getKey() == 'e' || E.getValue().size() > 1) return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public Set<NFAState> getToState(NFAState from, char onSymb) {
+		if(!states.contains(from)) {
+			return null;
+		}
+		Map<Character, Set<NFAState>> thing = transitions.get(from); 
+		if(thing == null) {
+			return Set.of();
+		}
+		Set<NFAState> retval = thing.get(onSymb); 
+		if (retval == null) {
+			return Set.of();
+		}
+		return retval;
+	}
+
+	@Override
+	public Set<NFAState> eClosure(NFAState s) {
+		if(!states.contains(s)) {
+			return null;
+		}
+		Set<NFAState> retval = new LinkedHashSet<NFAState>();
+		Stack<NFAState> stack = new Stack<NFAState>();
+		stack.addAll(getToState(s, 'e'));
+		retval.add(s);
+		retval.addAll(stack);
+//		for (NFAState state: stack) {
+//			for (NFAState stackState : eClosure(state)) {
+//				if(!retval.contains(stackState)) {
+//					stack.add(stackState);
+//					retval.add(stackState);
+//				}
+//			}
+//			stack.pop();
+//		}
+		while(!stack.isEmpty()){
+			for (NFAState stackState : eClosure(stack.pop())) {
+				if(!retval.contains(stackState)) {
+					stack.add(stackState);
+					retval.add(stackState);
+				}
+			}
+		}
+		return retval;
+	}
+	
 
 }

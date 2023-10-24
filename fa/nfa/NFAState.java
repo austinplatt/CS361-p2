@@ -1,26 +1,44 @@
+/**
+ * 
+ */
 package fa.nfa;
-import java.util.HashMap;
-import java.util.HashSet;
+
 import java.util.Map;
 import java.util.Set;
 
 import fa.State;
 
+/**
+ * NFA State representation
+ * @author Jered Fennell, Austin Platt
+ * @version 1.0
+ */
 public class NFAState extends State {
-    private Map<Character, Set<NFAState>> transitions;
+	
+	Map<Character, Set<NFAState>> transitions;
 
-    public NFAState(String name) {
-        super(name);
-        transitions = new HashMap<>();
-    }
+	/**
+	 * 
+	 */
+	public NFAState() {
+		super();
+		transitions = null;
+	}
 
-    // Add a transition for a given symbol
-    public void addTransition(char symbol, NFAState nextState) {
-        transitions.computeIfAbsent(symbol, k -> new HashSet<>()).add(nextState);
-    }
+	/**
+	 * @param name
+	 */
+	public NFAState(String name) {
+		super(name);
+		transitions = null;
+	}
+	
+	public void setTransitions(Map<Character, Set<NFAState>> set) {
+		transitions = set;
+	}
 
-    // Get the set of states reachable by a given symbol
-    public Set<NFAState> getTransitions(char symbol) {
-        return transitions.getOrDefault(symbol, new HashSet<>());
-    }
+	public Set<NFAState> toStates(char c) {
+		return transitions.get(c);
+	}
+
 }
