@@ -224,21 +224,21 @@ public class NFA implements NFAInterface {
 		return true;
 	}
 
-    @Override
-    public Set<NFAState> getToState(NFAState from, char onSymb) {
-        if (!states.contains(from)) {
-            return null;
-        }
-        Map<Character, Set<NFAState>> thing = transitions.get(from);
-        if (thing == null) {
-            return new HashSet<>(); // Create an empty HashSet
-        }
-        Set<NFAState> retval = thing.get(onSymb);
-        if (retval == null) {
-            return new HashSet<>(); // Create an empty HashSet
-        }
-        return retval;
-    }    
+	@Override
+	public Set<NFAState> getToState(NFAState from, char onSymb) {
+		if(!states.contains(from)) {
+			return null;
+		}
+		Map<Character, Set<NFAState>> thing = transitions.get(from); 
+		if(thing == null) {
+			return Set.of();
+		}
+		Set<NFAState> retval = thing.get(onSymb); 
+		if (retval == null) {
+			return Set.of();
+		}
+		return retval;
+	}
 
 	@Override
 	public Set<NFAState> eClosure(NFAState s) {
