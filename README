@@ -1,0 +1,42 @@
+**********************************************
+* Project #2: Nondeterministic Finite Automata
+* CS361-1 Fall 2023
+* 10/23/23
+* Jered Fennell & Austin Platt
+**********************************************
+
+OVERVIEW:
+
+The goal of this project is to implement a Java program that models a Nondeterministic finite automaton (NFA). There consists two Java classes, NFA and NFAState, to model the behavior of a non-deterministic finite automaton (NFA) and enhance understanding of packages, Java collections, and interface and abstract class implementations. The NFA is created using method invocations, defining its states, transitions, and properties, and to validate its functionality through comprehensive test-driven development. The NFA behavior should accept strings, compute epsilon closures, and check if the NFA is deterministic.
+
+COMPLILING AND RUNNING:
+
+* NFATest.java - Driver class that tests the DFA class with a given NFA tests.
+* State.java - Abstract class that represents a state in a NFA.
+* FAInterface.java - Interface that defines the methods to set the NFA configuration.
+* NFAInterface.java - Interface that extends FAInterface and defines the methods to NFA 
+* NFA.java - Class that implements the NFAInterface.
+* NFAState.java - Class that extends the State class.
+
+
+To run this, there is a specific driver file named "NFATest.java" where our given NFA tests are located. Within onyx, you will locate the project directory that contains the files and run this command to the compile the driver test class: 
+
+javac -cp .:/usr/share/java/junit.jar ./test/nfa/NFATest.java
+
+You then run the following command to run the tests:
+
+java -cp .:/usr/share/java/junit.jar:/usr/share/java/hamcrest/core.jar org.junit.runner.JUnitCore test.nfa.NFATest 
+
+
+ERRORS:
+
+With out initial set up of the classes, we had no problem implementing the NFA.java methods as well as the NFAState.java methods. When we first initially ran our tests, we failed 5 of the 18 tests ran. Based on the tests that failed, is where we ran into some issues. Key issues that lead to 5 of our tests failing were particularly in the maxCopies and accepts methods, which stem from the intricacies of simulating the behavior of a nondeterministic finite automaton (NFA) while processing input strings. The maxCopies method needs to accurately determine the maximum number of distinct paths or "copies" the NFA can follow when processing an input string. In contrast, the accepts method is responsible for determining whether an input string is accepted by the NFA. Both of these methods require effectively managing sets of NFA states and tracking transitions through the automaton while handling epsilon transitions. We were able to successfully troubleshoot through the problems we encountered by rearranging where newstates queue clears. We placed it right before the whileloop, so it remembers for the entire emptying of the currentStates and we let the maxCopies try to run characters that aren't in the alphabet to do everything it normally would, but just remove the head of the queue if the character is not in the alphabet and move on. It is important to note that some specific challenges in these methods include correctly following state transitions, efficiently handling epsilon closures (as the NFA may have multiple states involved in epsilon transitions), and appropriately managing data structures to avoid duplication and maintain the correct counts of NFA copies. Errors in these methods could lead to incorrect acceptance results or inaccurate counts of maximum copies, causing test failures. Once we fixed this issue, all of tests passed. 
+
+DISCUSSION:
+
+Overall, our experience with this project was challenging yet rewarding. Initially, our team had no difficulties setting up the NFA.java and NFAState.java classes, and implementing the basic methods was relatively straightforward. However, the real challenges arose when we executed our initial test suite, which revealed that we had failed 5 out of the 18 tests. The key issues were primarily concentrated in the maxCopies and accepts methods, which required us to meticulously simulate the complex behavior of a nondeterministic finite automaton (NFA) when processing input strings. Specifically, we had to address concerns related to correctly tracing state transitions, effectively handling epsilon closures (particularly when multiple states were involved in epsilon transitions), and managing data structures to prevent duplication and ensure accurate NFA copy counts. One significant breakthrough in troubleshooting was reorganizing where the newStates queue was cleared, placing it just before the while-loop. This adjustment ensured that the queue's contents persisted during the entire process of emptying currentStates. Additionally, we enhanced the maxCopies method to handle characters outside the alphabet gracefully, removing the head of the queue and continuing the process. After addressing these challenges, all of our tests passed, ultimately making the project a valuable learning experience in simulating NFAs and debugging complex automata behaviors.
+
+
+
+
+
