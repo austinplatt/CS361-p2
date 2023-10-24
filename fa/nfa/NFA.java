@@ -161,10 +161,10 @@ public boolean accepts(String s) {
 		int retval = 0;
 		
 		Queue<NFAState> newStates = new LinkedList<NFAState>();
-        if (s == "e") {
+        if (s != "e") {
 			for (char symbol : s.toCharArray()) {
 				if (!alphabet.contains(symbol)) {
-					return 0;
+					return 1;
 				}
 
 				while (!currentStates.isEmpty()) {
