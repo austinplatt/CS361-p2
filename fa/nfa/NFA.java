@@ -162,7 +162,9 @@ public boolean accepts(String s) {
     
         Queue<NFAState> newStates = new LinkedList<NFAState>();
     
-        if (!s.equals("e")) {
+        if (s.equals("e")) {
+            retval = 1; // Handle epsilon transition
+        } else {
             for (char symbol : s.toCharArray()) {
                 if (!alphabet.contains(symbol)) {
                     return 1;
@@ -172,18 +174,16 @@ public boolean accepts(String s) {
                     Set<NFAState> eClose = eClosure(currentStates.peek());
                     eClose.remove(currentStates.peek());
                     currentStates.addAll(eClose);
+                    retval = Math.max(retval, currentStates.size());
                     newStates.addAll(getToState(currentStates.remove(), symbol));
                 }
                 currentStates.addAll(newStates);
             }
-    
-            retval = Math.max(retval, currentStates.size());
-        } else {
-            retval = 1; // Handle epsilon transition
         }
     
         return retval;
     }
+    
     
 
 	@Override
